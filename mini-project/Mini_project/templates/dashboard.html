@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Predictive Maintenance Dashboard</title>
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-cogs"></i>
+            <h2>PredictAI</h2>
+        </div>
+        <nav>
+            <a href="#" class="nav-item active" data-section="overview">
+                <i class="fas fa-chart-line"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="machines">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>At Risk Machines</span>
+            </a>
+            <a href="#" class="nav-item" data-section="analytics">
+                <i class="fas fa-chart-bar"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-item" data-section="predict">
+                <i class="fas fa-robot"></i>
+                <span>Make Prediction</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                <h1>Predictive Maintenance Dashboard</h1>
+                <p class="subtitle">Real-time machine health monitoring & analytics</p>
+            </div>
+            <div class="header-right">
+                <div class="refresh-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Refresh</span>
+                </div>
+                <div class="last-update">
+                    Last updated: <span id="last-update-time">--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <div class="content-section active" id="overview-section">
+            <!-- KPI Cards -->
+            <div class="kpi-container">
+                <div class="kpi-card blue">
+                    <div class="kpi-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3 id="total-machines">--</h3>
+                        <p>Total Machines</p>
+                    </div>
+                </div>
+                <div class="kpi-card green">
+                    <div class="kpi-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3 id="healthy-machines">--</h3>
+                        <p>Healthy Machines</p>
+                    </div>
+                </div>
+                <div class="kpi-card red">
+                    <div class="kpi-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3 id="at-risk-machines">--</h3>
+                        <p>At Risk Machines</p>
+                    </div>
+                </div>
+                <div class="kpi-card purple">
+                    <div class="kpi-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <h3 id="avg-health">--%</h3>
+                        <p>Average Health Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Risk Distribution</h3>
+                        <p>Breakdown by risk level</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Machine Health Status</h3>
+                        <p>Overall health overview</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="healthStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="charts-row">
+                <div class="chart-card wide">
+                    <div class="chart-header">
+                        <h3>Feature Correlations</h3>
+                        <p>Impact on machine failure</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="correlationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- At Risk Machines Section -->
+        <div class="content-section" id="machines-section">
+            <div class="section-header">
+                <h2>Machines At Risk</h2>
+                <p>Real-time monitoring of high-risk machines requiring attention</p>
+            </div>
+
+            <div class="risk-filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="high">High Risk</button>
+                <button class="filter-btn" data-filter="medium">Medium Risk</button>
+                <button class="filter-btn" data-filter="low">Low Risk</button>
+            </div>
+
+            <div class="table-container">
+                <table class="machines-table">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Product ID</th>
+                            <th>Type</th>
+                            <th>Risk Level</th>
+                            <th>Risk Score</th>
+                            <th>Temperature (K)</th>
+                            <th>Speed (rpm)</th>
+                            <th>Torque (Nm)</th>
+                            <th>Tool Wear (min)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="machines-table-body">
+                        <tr>
+                            <td colspan="10" class="loading">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="content-section" id="analytics-section">
+            <div class="section-header">
+                <h2>Advanced Analytics</h2>
+                <p>Deep dive into machine performance metrics and trends</p>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card wide">
+                    <div class="chart-header">
+                        <h3>Performance Trends Over Time</h3>
+                        <p>Key metrics across production batches</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="timeSeriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Temperature Distribution</h3>
+                        <p>Operating temperature ranges</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Tool Wear Analysis</h3>
+                        <p>Wear patterns and maintenance timing</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="toolWearChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Section -->
+        <div class="content-section" id="predict-section">
+            <div class="section-header">
+                <h2>Make Prediction</h2>
+                <p>Input machine parameters to predict failure risk</p>
+            </div>
+
+            <div class="prediction-container">
+                <div class="prediction-form">
+                    <h3>Machine Parameters</h3>
+                    <form id="prediction-form">
+                        <div class="form-group">
+                            <label>Air Temperature (K)</label>
+                            <input type="number" id="air-temp" step="0.1" value="300" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Process Temperature (K)</label>
+                            <input type="number" id="process-temp" step="0.1" value="310" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rotational Speed (rpm)</label>
+                            <input type="number" id="rotational-speed" step="1" value="1500" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Torque (Nm)</label>
+                            <input type="number" id="torque" step="0.1" value="40" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tool Wear (min)</label>
+                            <input type="number" id="tool-wear" step="1" value="100" required>
+                        </div>
+                        <button type="submit" class="predict-btn">
+                            <i class="fas fa-bolt"></i>
+                            Predict Failure Risk
+                        </button>
+                    </form>
+                </div>
+
+                <div class="prediction-result" id="prediction-result">
+                    <h3>Prediction Result</h3>
+                    <div class="result-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Enter machine parameters and click predict to see results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
